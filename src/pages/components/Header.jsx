@@ -352,7 +352,9 @@ const Header = () => {
   }
 
   useEffect(() => {
-    getUserData();
+    if (session) {
+      getUserData();
+    }
   }, []);
 
   if (status === "loading") {
