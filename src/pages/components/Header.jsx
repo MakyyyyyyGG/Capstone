@@ -7,6 +7,8 @@ const Header = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isEditing, setIsEditing] = useState(false);
+  const [isLocationEditing, setIsLocationEditing] = useState(false);
+
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [bday, setBday] = useState("");
@@ -41,28 +43,9 @@ const Header = () => {
     fetchRegions();
   }, []);
 
-  // console.log(
-  //   selectedRegion,
-  //   selectedProvince,
-  //   selectedMunicipality,
-  //   selectedBarangay
-  // );
-  // useEffect(() => {
-  //   console.log(lastName, firstName, age, gender, bday);
-  // }, [lastName, firstName, age, gender, bday]);
-  // useEffect(() => {
-  //   console.log(
-  //     selectedRegionText,
-  //     selectedProvinceText,
-  //     selectedMunicipalityText,
-  //     selectedBarangayText
-  //   );
-  // }, [
-  //   selectedRegionText,
-  //   selectedProvinceText,
-  //   selectedMunicipalityText,
-  //   selectedBarangayText,
-  // ]);
+  useEffect(() => {
+    console.log(gender, bday, region, province, municipality, barangay);
+  }, [gender, bday, region, province, municipality, barangay]);
 
   const fetchRegions = async () => {
     try {
@@ -259,8 +242,61 @@ const Header = () => {
   const handleUpdateClick = () => {
     setIsEditing(true);
   };
+  const handleLocUpdateClick = () => {
+    setIsLocationEditing(true);
+  };
 
   const handleSaveClick = async (e) => {
+    e.preventDefault();
+    const finalRegion = userData?.region || selectedRegionText;
+    const finalProvince = userData?.province || selectedProvinceText;
+    const finalMunicipality =
+      userData?.municipality || selectedMunicipalityText;
+    const finalBarangay = userData?.barangay || selectedBarangayText;
+
+    try {
+      const updateData = {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          account_id: session.user.id,
+          first_name: firstName,
+          last_name: lastName,
+          age: age,
+          gender: gender,
+          bday: bday,
+          region: finalRegion,
+          province: finalProvince,
+          municipality: finalMunicipality,
+          barangay: finalBarangay,
+        }),
+      };
+
+      const response = await fetch(
+        "/api/accounts_teacher/profile_manage",
+        updateData
+      );
+
+      // Log the response
+      const text = await response.text(); // Get response as text
+      console.log(text);
+
+      // Try to parse the JSON
+      const data = JSON.parse(text);
+      console.log(data);
+      console.log("User data updated successfully");
+      setUserData(data); // Update the userData state with the new data
+      getUserData(); // Re-fetch user data to reflect the updates
+    } catch (error) {
+      console.error("Error updating user data:", error);
+    }
+
+    setIsEditing(false);
+  };
+
+  const handleLocationSaveClick = async (e) => {
     e.preventDefault();
     if (
       !selectedRegion ||
@@ -305,6 +341,7 @@ const Header = () => {
       const data = JSON.parse(text);
       console.log(data);
       console.log("User data updated successfully");
+      setIsLocationEditing(false);
       setUserData(data); // Update the userData state with the new data
       getUserData(); // Re-fetch user data to reflect the updates
     } catch (error) {
@@ -317,8 +354,10 @@ const Header = () => {
   const handleCancelClick = () => {
     setFirstName(session.user.first_name);
     setLastName(session.user.last_name);
+    setIsLocationEditing(false);
     setIsEditing(false);
   };
+
   async function getUserData() {
     const getData = {
       method: "GET",
@@ -355,7 +394,7 @@ const Header = () => {
     if (session) {
       getUserData();
     }
-  }, []);
+  }, [session]);
 
   if (status === "loading") {
     return <p>Loading...</p>;
@@ -375,42 +414,76 @@ const Header = () => {
       <form className="flex flex-col">
         {isEditing ? (
           <>
-            <input
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
-            <input
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-            />
-            <input
-              type="number"
-              placeholder="Age"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-            />
-            <input
-              type="date"
-              value={bday}
-              onChange={(e) => setBday(e.target.value)}
-            />
-            <label>Choose a gender:</label>
-            <select
-              name="gender"
-              id="gender"
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-            >
-              <option value="">Select Gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
+            {userData && (
+              <>
+                <input
+                  type="text"
+                  value={firstName || ""}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+                <input
+                  type="text"
+                  value={lastName || ""}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+                <input
+                  type="number"
+                  placeholder="Age"
+                  value={age || ""}
+                  onChange={(e) => setAge(e.target.value)}
+                />
+                <input
+                  type="date"
+                  value={bday || ""}
+                  onChange={(e) => setBday(e.target.value)}
+                />
 
+                <label>Choose a gender:</label>
+                <select
+                  name="gender"
+                  id="gender"
+                  value={gender || ""}
+                  onChange={(e) => setGender(e.target.value)}
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </>
+            )}
+
+            <Button color="primary" onClick={handleSaveClick}>
+              Save
+            </Button>
+            <Button color="danger" onClick={handleCancelClick}>
+              Cancel
+            </Button>
+          </>
+        ) : (
+          <>
+            <p>First Name: {firstName}</p>
+            <p>Last Name: {lastName}</p>
+            <p>Age: {age}</p>
+            <p>Gender: {gender}</p>
+            <p>Birthday: {bday}</p>
+
+            <Button color="secondary" onClick={handleUpdateClick}>
+              Update
+            </Button>
+          </>
+        )}
+      </form>
+      <form action="" className="flex flex-col">
+        {isLocationEditing ? (
+          <>
             <label>Region:</label>
-            <select value={selectedRegion} onChange={handleRegionChange}>
+            <select
+              name="region"
+              id="region"
+              value={selectedRegion || ""}
+              onChange={handleRegionChange}
+            >
               <option value="">Select Region</option>
               {regions.map((region) => (
                 <option key={region.code} value={region.code}>
@@ -420,7 +493,10 @@ const Header = () => {
             </select>
 
             <label>Province:</label>
-            <select value={selectedProvince} onChange={handleProvinceChange}>
+            <select
+              value={selectedProvince || ""}
+              onChange={handleProvinceChange}
+            >
               <option value="">Select Province</option>
               {provinces.map((province) => (
                 <option key={province.code} value={province.code}>
@@ -431,14 +507,12 @@ const Header = () => {
 
             <label>Municipality:</label>
             <select
-              value={userData?.municipality || selectedMunicipality || ""}
+              value={selectedMunicipality || ""}
               onChange={handleMunicipalityChange}
             >
               <option value="">Select Municipality</option>
               {selectedProvinceText === "Albay" && (
-                <>
-                  <option value="Legazpi">Legazpi</option>
-                </>
+                <option value="Legazpi">Legazpi</option>
               )}
               {municipalities.map((municipality) => (
                 <option key={municipality.code} value={municipality.code}>
@@ -448,7 +522,10 @@ const Header = () => {
             </select>
 
             <label>Barangay:</label>
-            <select value={selectedBarangay} onChange={handleBarangayChange}>
+            <select
+              value={selectedBarangay || ""}
+              onChange={handleBarangayChange}
+            >
               <option value="">Select Barangay</option>
               {selectedMunicipality === "Legazpi"
                 ? customBarangays.map((barangay, index) => (
@@ -462,7 +539,7 @@ const Header = () => {
                     </option>
                   ))}
             </select>
-            <Button color="primary" onClick={handleSaveClick}>
+            <Button color="primary" onClick={handleLocationSaveClick}>
               Save
             </Button>
             <Button color="danger" onClick={handleCancelClick}>
@@ -471,16 +548,11 @@ const Header = () => {
           </>
         ) : (
           <>
-            <p>First Name: {firstName}</p>
-            <p>Last Name: {lastName}</p>
-            <p>Age: {userData?.age}</p>
-            <p>Gender: {userData?.gender}</p>
-            <p>Birthday: {userData?.bday}</p>
             <p>Region: {userData?.region}</p>
             <p>Province: {userData?.province}</p>
             <p>Municipality: {userData?.municipality}</p>
             <p>Barangay: {userData?.barangay}</p>
-            <Button color="secondary" onClick={handleUpdateClick}>
+            <Button color="secondary" onClick={handleLocUpdateClick}>
               Update
             </Button>
           </>
