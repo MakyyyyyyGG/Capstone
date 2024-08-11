@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Button, Chip } from "@nextui-org/react";
 import { useRouter } from "next/router";
-///////// TO DO UPLOAD USERDATA IN DATABASE AND FIX LOCATION
 const Header = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -254,6 +253,11 @@ const Header = () => {
       userData?.municipality || selectedMunicipalityText;
     const finalBarangay = userData?.barangay || selectedBarangayText;
 
+    const apiEndpoint =
+      session.user.role === "student"
+        ? `/api/accounts_student/profile_manage?account_id=${session.user.id}`
+        : `/api/accounts_teacher/profile_manage?account_id=${session.user.id}`;
+
     try {
       const updateData = {
         method: "PUT",
@@ -274,10 +278,7 @@ const Header = () => {
         }),
       };
 
-      const response = await fetch(
-        "/api/accounts_teacher/profile_manage",
-        updateData
-      );
+      const response = await fetch(apiEndpoint, updateData);
 
       // Log the response
       const text = await response.text(); // Get response as text
@@ -307,6 +308,10 @@ const Header = () => {
       alert("Please select all location fields before saving.");
       return;
     }
+    const apiEndpoint =
+      session.user.role === "student"
+        ? `/api/accounts_student/profile_manage?account_id=${session.user.id}`
+        : `/api/accounts_teacher/profile_manage?account_id=${session.user.id}`;
 
     try {
       const updateData = {
@@ -328,10 +333,7 @@ const Header = () => {
         }),
       };
 
-      const response = await fetch(
-        "/api/accounts_teacher/profile_manage",
-        updateData
-      );
+      const response = await fetch(apiEndpoint, updateData);
 
       // Log the response
       const text = await response.text(); // Get response as text
@@ -365,12 +367,13 @@ const Header = () => {
         "Content-Type": "application/json",
       },
     };
+    const apiEndpoint =
+      session.user.role === "student"
+        ? `/api/accounts_student/profile_manage?account_id=${session.user.id}`
+        : `/api/accounts_teacher/profile_manage?account_id=${session.user.id}`;
 
     try {
-      const response = await fetch(
-        `/api/accounts_teacher/profile_manage?account_id=${session.user.id}`,
-        getData
-      );
+      const response = await fetch(apiEndpoint, getData);
       const data = await response.json();
       const user = data.usersData[0];
       if (user) {
@@ -414,44 +417,40 @@ const Header = () => {
       <form className="flex flex-col">
         {isEditing ? (
           <>
-            {userData && (
-              <>
-                <input
-                  type="text"
-                  value={firstName || ""}
-                  onChange={(e) => setFirstName(e.target.value)}
-                />
-                <input
-                  type="text"
-                  value={lastName || ""}
-                  onChange={(e) => setLastName(e.target.value)}
-                />
-                <input
-                  type="number"
-                  placeholder="Age"
-                  value={age || ""}
-                  onChange={(e) => setAge(e.target.value)}
-                />
-                <input
-                  type="date"
-                  value={bday || ""}
-                  onChange={(e) => setBday(e.target.value)}
-                />
+            <input
+              type="text"
+              value={firstName || ""}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+            <input
+              type="text"
+              value={lastName || ""}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+            <input
+              type="number"
+              placeholder="Age"
+              value={age || ""}
+              onChange={(e) => setAge(e.target.value)}
+            />
+            <input
+              type="date"
+              value={bday || ""}
+              onChange={(e) => setBday(e.target.value)}
+            />
 
-                <label>Choose a gender:</label>
-                <select
-                  name="gender"
-                  id="gender"
-                  value={gender || ""}
-                  onChange={(e) => setGender(e.target.value)}
-                >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </>
-            )}
+            <label>Choose a gender:</label>
+            <select
+              name="gender"
+              id="gender"
+              value={gender || ""}
+              onChange={(e) => setGender(e.target.value)}
+            >
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
 
             <Button color="primary" onClick={handleSaveClick}>
               Save
