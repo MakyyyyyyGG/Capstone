@@ -3,6 +3,7 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { useSession } from "next-auth/react";
 import CreateRoom from "../components/CreateRoom";
+import Rooms from "./rooms";
 
 const Dashboard = () => {
   const { data: session } = useSession();
@@ -10,7 +11,6 @@ const Dashboard = () => {
 
   // Function to fetch rooms
   const fetchRooms = async () => {
-    console.log("executed");
     if (session?.user?.id) {
       const res = await fetch(
         `/api/accounts_teacher/room/create_room?account_id=${session.user.id}`
@@ -29,23 +29,16 @@ const Dashboard = () => {
       <Header />
       <div className="flex border-2">
         <div className="flex flex-col  m-4 p-4 border-2 w-[200px]">
+          {/* Pass the fetchRooms function to CreateRoom */}
           <CreateRoom onRoomCreated={fetchRooms} />
           <Sidebar />
         </div>
 
         <div>
           <h1 className="border-2">Teacher Dashboard</h1>
-
           <div>
-            <h2>Your Rooms</h2>
-            <ul>
-              {rooms.map((room) => (
-                <li key={room.room_code}>
-                  {room.room_name} - {room.room_difficulty} - Code:{" "}
-                  {room.room_code}
-                </li>
-              ))}
-            </ul>
+            {/* Pass the rooms and fetchRooms function to Rooms */}
+            <Rooms rooms={rooms} />
           </div>
         </div>
       </div>
