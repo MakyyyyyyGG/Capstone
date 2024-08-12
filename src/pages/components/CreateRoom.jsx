@@ -15,12 +15,17 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 
-const CreateRoom = () => {
+const CreateRoom = ({ onRoomCreated }) => {
   const { data: session } = useSession();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [roomName, setRoomName] = useState("");
   const [difficulty, setDifficulty] = useState("");
-  const [roomCode, setRoomCode] = useState("");
+
+  // Ensure onRoomCreated is a function
+  if (typeof onRoomCreated !== "function") {
+    console.error("onRoomCreated prop is not a function:", onRoomCreated);
+    return null;
+  }
 
   // Function to generate a unique 4-digit room code
   const generateRoomCode = async () => {
@@ -28,14 +33,13 @@ const CreateRoom = () => {
     let unique = false;
 
     while (!unique) {
-      code = Math.floor(1000 + Math.random() * 9000); // Generates a 4-digit number
+      code = Math.floor(1000 + Math.random() * 9000);
 
-      // Check if the code already exists
       const response = await fetch(
         `/api/accounts_teacher/room/check-room-code?code=${code}`
       );
       const result = await response.json();
-      unique = !result.exists; // Check if the code already exists
+      unique = !result.exists;
     }
 
     return code;
@@ -43,12 +47,12 @@ const CreateRoom = () => {
 
   const handleCreateRoom = async (e) => {
     e.preventDefault();
-    console.log("Create Room");
-    console.log(roomName, difficulty);
+    if (difficulty === "") {
+      alert("Difficulty is required");
+      return;
+    }
 
-    // Generate a unique room code
     const generatedRoomCode = await generateRoomCode();
-    setRoomCode(generatedRoomCode);
 
     const roomData = {
       method: "POST",
@@ -56,7 +60,7 @@ const CreateRoom = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        account_id: session.user.id, // Assuming session has user ID
+        account_id: session.user.id,
         room_name: roomName,
         difficulty: difficulty,
         room_code: generatedRoomCode,
@@ -69,12 +73,18 @@ const CreateRoom = () => {
         roomData
       );
       const result = await response.json();
-      console.log(result);
-      console.log("Room created successfully");
+
+      if (response.ok) {
+        console.log("Room created successfully", result);
+        onRoomCreated(); // Call the function passed as a prop
+      } else {
+        console.error("Error creating room:", result.error);
+      }
     } catch (error) {
       console.error("Error creating room:", error);
     }
 
+    setRoomName("");
     setDifficulty("");
     onOpenChange(false);
   };
@@ -100,13 +110,14 @@ const CreateRoom = () => {
                 <form action="">
                   <Input
                     placeholder="Room Name"
+                    value={roomName}
                     onChange={(e) => setRoomName(e.target.value)}
                   />
                   <Dropdown>
                     <DropdownTrigger>
-                      {(difficulty && (
+                      {difficulty ? (
                         <Button variant="bordered">{difficulty}</Button>
-                      )) || (
+                      ) : (
                         <Button variant="bordered">Choose Difficulty</Button>
                       )}
                     </DropdownTrigger>
