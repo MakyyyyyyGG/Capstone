@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Button, Chip } from "@nextui-org/react";
 import { useRouter } from "next/router";
+import JoinRoom from "./JoinRoom";
 const Header = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -566,6 +567,7 @@ const Header = () => {
       >
         Signout
       </Button>
+
       <div className="flex flex-col">
         <p>age {age}</p>
         <p>gender {userData?.gender}</p>
