@@ -37,7 +37,6 @@ const Dashboard = () => {
         <div>
           <h1 className="border-2">Teacher Dashboard</h1>
           <div>
-            {/* Pass the rooms and fetchRooms function to Rooms */}
             <Rooms rooms={rooms} />
           </div>
         </div>

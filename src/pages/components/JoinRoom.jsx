@@ -11,7 +11,7 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 
-const JoinRoom = () => {
+const JoinRoom = ({ onRoomJoin }) => {
   const { data: session } = useSession();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [roomCode, setRoomCode] = useState(""); // roomCode should be an empty string, not an array
@@ -46,6 +46,7 @@ const JoinRoom = () => {
         console.log("Room joined successfully:", data); // You can use this data as needed
         onOpenChange(false);
         setRoomCode("");
+        onRoomJoin();
         alert("Room joined successfully!");
       } else {
         setError(data.error || "Failed to join room");

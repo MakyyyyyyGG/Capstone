@@ -16,7 +16,7 @@ const Rooms = ({ rooms }) => {
               <p>Room Difficulty: {room.room_difficulty}</p>
               <p>Room Code: {room.room_code}</p>
 
-              <Link href={`/teacher-dashboard/rooms/${room.room_id}`}>
+              <Link href={`/teacher-dashboard/rooms/${room.room_code}`}>
                 <Button>View Room</Button>
               </Link>
             </li>

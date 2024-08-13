@@ -43,6 +43,23 @@ export default async function handler(req, res) {
       console.error("Error executing query:", error);
       return res.status(500).json({ error: "Internal Server Error" });
     }
+  } else if (req.method === "GET") {
+    const { student_id } = req.query;
+    const roomData = await query({
+      query: `select 
+	rooms.room_name,
+	rooms.room_difficulty,
+    rooms.room_code,
+    student_room.student_id
+from student_room
+join
+	rooms on student_room.room_id = rooms.room_id
+join
+	students on student_room.student_id = students.account_id	
+where students.account_id = ?`,
+      values: [student_id],
+    });
+    res.status(200).json({ roomData });
   } else {
     res.setHeader("Allow", ["POST"]);
     res.status(405).end(`Method ${req.method} Not Allowed`);
